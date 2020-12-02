@@ -27,10 +27,10 @@ void send_rst(pcap_t* handle, struct packet_info *org_packet){
 	memcpy(rst_packet->ethernet.ether_shost, mymac, 6);
 	
 	//ip len = sizeof(ip_hdr) + sizeof(tcp)
-	rst_packet->ipv4.ip_len = (org_packet->ipv4.ip_hl * 4) + (org_packet->tcp.th_off * 4);
+	rst_packet->ipv4.ip_len = htons((org_packet->ipv4.ip_hl * 4) + (org_packet->tcp.th_off * 4));
 
 	//tcp seq = org seq + org.tcp_data_size
-	rst_packet->tcp.th_seq = org_packet->tcp.th_seq + org_datalen;
+	rst_packet->tcp.th_seq = htonl(ntohl(org_packet->tcp.th_seq) + org_datalen);
 
 	//flag = rst + ack
 	rst_packet->tcp.th_flags = TH_RST;
@@ -62,7 +62,7 @@ void send_fin(pcap_t* handle, struct packet_info *org_packet){
 	memcpy(fin_packet->ethernet.ether_dhost, org_packet->ethernet.ether_shost, 6);
 
 	//ip len = sizeof(ip_hdr) + sizeof(tcp)
-	fin_packet->ipv4.ip_len = (org_packet->ipv4.ip_hl * 4) + (org_packet->tcp.th_off * 4);
+	fin_packet->ipv4.ip_len = htons((org_packet->ipv4.ip_hl * 4) + (org_packet->tcp.th_off * 4));
 
 	//ip ttl = org ttl
 	fin_packet->ipv4.ip_ttl = 128;
@@ -80,13 +80,13 @@ void send_fin(pcap_t* handle, struct packet_info *org_packet){
 	fin_packet->tcp.th_dport = org_packet->tcp.th_sport;
 
 	//tcp seq = org seq + org.tcp_data_size
-	fin_packet->tcp.th_seq = org_packet->tcp.th_seq;
+	fin_packet->tcp.th_seq = org_packet->tcp.th_ack;
 
 	//tcp ack = org ack
-	fin_packet->tcp.th_ack = org_packet->tcp.th_seq + org_datalen;
+	fin_packet->tcp.th_ack = htonl(ntohl(org_packet->tcp.th_seq) + org_datalen);
 
 	//flag = rst + ack
-	fin_packet->tcp.th_flags = TH_FIN;
+	fin_packet->tcp.th_flags = TH_FIN + TH_ACK;
 
 	//checksum
 	ip_checksum(&(fin_packet->ipv4));
