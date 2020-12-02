@@ -39,7 +39,7 @@ void send_rst(pcap_t* handle, struct packet_info *org_packet){
 	ip_checksum(&(rst_packet->ipv4));
 	tcp_checksum(rst_packet);
 
-	int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&rst_packet), size);
+	int res = pcap_sendpacket(handle, (uint8_t*)rst_packet, size);
     if (res != 0) {
         fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(handle));
     }
@@ -92,7 +92,7 @@ void send_fin(pcap_t* handle, struct packet_info *org_packet){
 	ip_checksum(&(fin_packet->ipv4));
 	tcp_checksum(fin_packet);
 
-	int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&fin_packet), size);
+	int res = pcap_sendpacket(handle, (uint8_t*)fin_packet, size);
     if (res != 0) {
         fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(handle));
     }	
@@ -165,7 +165,6 @@ void get_my_mac(char* dev) {
     memcpy(mymac, ifr.ifr_hwaddr.sa_data, 6);
     close(sock);   
 }
-
 
 
 
